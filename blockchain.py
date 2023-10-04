@@ -1,20 +1,41 @@
 import hashlib
 import json
 import datetime
+import random
 
+
+# Класс для добавления транзакций к блокам
+class Transaction:
+    def __init__(self, sender, receiver, amount):
+        self.sender = sender
+        self.receiver = receiver
+        self.amount = amount
+
+    def to_dict(self):
+        return {
+            'sender': self.sender,
+            'receiver': self.receiver,
+            'amount': self.amount
+        }
+
+
+# Класс создаюший блоки
 class Block:
-    def __init__(self, index, timestamp, data, previousHash=""):
+    def __init__(self, index, timestamp, transactions, previousHash=""):
         self.index = index
         self.timestamp = timestamp
-        self.data = data
+        self.transactions = transactions
         self.previousHash = previousHash
         self.nonce = 0
         self.hash = self.calculateHash()
 
+    # Функция считающая хэш на основе данных в блоке
     def calculateHash(self):
-        string = str(self.index) + self.previousHash + self.timestamp + json.dumps(self.data) + str(self.nonce)
+        string = str(self.index) + self.previousHash + self.timestamp + \
+                 json.dumps([tx.to_dict() for tx in self.transactions]) + str(self.nonce)
         return hashlib.sha256(string.encode()).hexdigest()
 
+    # Майним
     def mineBlock(self, difficulty):
         while self.hash[:difficulty] != "0" * difficulty:
             self.nonce += 1
@@ -25,29 +46,41 @@ class Block:
         return {
             'index': self.index,
             'timestamp': self.timestamp,
-            'data': self.data,
+            'data': [tx.to_dict() for tx in self.transactions],
             'previous_hash': self.previousHash,
             'hash': self.hash,
             'nonce': self.nonce
         }
 
 
+# Класс создания цепочки
 class Blockchain:
     def __init__(self):
         self.chain = [self.createGenesis()]
         self.difficulty = 4
+        self.pendingTransactions = []
 
+    # Создаем начальный блок
     def createGenesis(self):
-        return Block(0, "01/01/2018", "Genesis block", "0")
+        return Block(0, "01/01/2018", [Transaction("Genesis", "Genesis", 0)], "0")
 
+    # Формируем цепочку блоков
     def latestBlock(self):
         return self.chain[-1]
 
-    def addBlock(self, newBlock):
-        newBlock.previousHash = self.latestBlock().hash
-        newBlock.mineBlock(self.difficulty)
-        self.chain.append(newBlock)
+    # Добавляем транзакции в наш блок
+    def addTransaction(self, transaction):
+        self.pendingTransactions.append(transaction)
 
+    # Генерируем хэш на основе списка транзакций
+    def minePendingTransactions(self):
+        block = Block(len(self.chain), datetime.datetime.now().strftime("%d/%m/%Y"), self.pendingTransactions,
+                      self.latestBlock().hash)
+        block.mineBlock(self.difficulty)
+        self.chain.append(block)
+        self.pendingTransactions = []
+
+    # Проверка легитимности блоков
     def checkValid(self):
         for i in range(1, len(self.chain)):
             currentBlock = self.chain[i]
@@ -59,23 +92,33 @@ class Blockchain:
         return True
 
 
+fakeUsers = ["Anna", "Ilya", "Kirill", "Ulyana", "Matvey",
+             "Alice", "Denis", "Kira", "Konstantin", "Orel",
+             "Nikita", "Krol", "Olga", "Prorok", "Ksenia",
+             "Camilla", "Maksim", "Andrey", "Gregory", "Marina"]
+
+
 def main(num):
-    enlightChain = Blockchain()
+    testChain = Blockchain()
 
-    timestamp = datetime.datetime.now().strftime("%d/%m/%Y")
-
+    # Имитация майнинга
     for i in range(1, num):
         print("Mining block...")
-        enlightChain.addBlock(Block(i, timestamp, f"This is block {i}"))
-
-    for block in enlightChain.chain:
+        # testChain.addBlock(Block(i, timestamp, f"This is block {i}"))
+        testChain.addTransaction(Transaction(fakeUsers[random.randint(1, 19)], fakeUsers[random.randint(1, 19)],
+                                             random.randint(1, 100)))
+        testChain.addTransaction(Transaction(fakeUsers[random.randint(1, 19)], fakeUsers[random.randint(1, 19)],
+                                             random.randint(1, 100)))
+        testChain.minePendingTransactions()
+    # Вывод цепочки в консоль
+    for block in testChain.chain:
         print(block.timestamp)
-        print(block.data)
+        print('Transaction:', [tx.to_dict() for tx in block.transactions])
         print('Previous_hash:', block.previousHash)
         print('Hash:', block.hash)
         print('Nonce:', block.nonce)
         print()
-    print("Is blockchain valid?" + str(enlightChain.checkValid()))
+    print("Is blockchain valid?" + str(testChain.checkValid()))
 
 
 while True:
