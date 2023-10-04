@@ -69,7 +69,9 @@ print("Mining block...")
 enlightChain.addBlock(Block(2, timestamp, "This is block 2"))
 
 for block in enlightChain.chain:
+    print(block.timestamp)
     print(block.data)
-    print(block.hash)
+    print('Previous_hash:', block.previousHash)
+    print('Hash:', block.hash)
     print()
 print("Is blockchain valid?" + str(enlightChain.checkValid()))
