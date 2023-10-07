@@ -2,6 +2,7 @@ import hashlib
 import json
 import datetime
 import random
+import os
 
 
 # Класс для добавления транзакций к блокам
@@ -46,7 +47,7 @@ class Block:
         return {
             'index': self.index,
             'timestamp': self.timestamp,
-            'data': [tx.to_dict() for tx in self.transactions],
+            'transaction': [tx.to_dict() for tx in self.transactions],
             'previous_hash': self.previousHash,
             'hash': self.hash,
             'nonce': self.nonce
@@ -100,24 +101,30 @@ fakeUsers = ["Anna", "Ilya", "Kirill", "Ulyana", "Matvey",
 
 def main(num):
     testChain = Blockchain()
-
+    path = 'data.txt'
+    try:
+        os.remove(path)
+    except OSError:
+        pass
     # Имитация майнинга
     for i in range(1, num):
         print("Mining block...")
-        # testChain.addBlock(Block(i, timestamp, f"This is block {i}"))
-        testChain.addTransaction(Transaction(fakeUsers[random.randint(1, 19)], fakeUsers[random.randint(1, 19)],
-                                             random.randint(1, 100)))
-        testChain.addTransaction(Transaction(fakeUsers[random.randint(1, 19)], fakeUsers[random.randint(1, 19)],
-                                             random.randint(1, 100)))
+        for j in range(random.randint(1, 6)):
+            testChain.addTransaction(Transaction(fakeUsers[random.randint(1, 19)], fakeUsers[random.randint(1, 19)],
+                                                 random.randint(1, 100)))
         testChain.minePendingTransactions()
     # Вывод цепочки в консоль
     for block in testChain.chain:
         print(block.timestamp)
-        print('Transaction:', [tx.to_dict() for tx in block.transactions])
+        print('Transaction:')
+        for tx in block.transactions:
+            print('  ', tx.sender, '->', tx.receiver, '(', tx.amount, ')')
         print('Previous_hash:', block.previousHash)
         print('Hash:', block.hash)
         print('Nonce:', block.nonce)
         print()
+        with open('data.txt', 'a') as outfile:
+            json.dump(block.to_dict(), outfile, indent=4)
     print("Is blockchain valid?" + str(testChain.checkValid()))
 
 
