@@ -3,18 +3,9 @@ import os
 
 def checkBlock(path):
     with open(path, 'r') as file:
-        data = file.read()
+        data = json.load(file)
 
-    blocks = data.split('}{')  # разбиваем данные на блоки
-
-    for block in blocks:
-        if block[0] != '{':  # если блок начинается не с '{', то добавляем его
-            block = '{' + block
-        if block[-1] != '}':  # если блок заканчивается не '}', то добавляем его
-            block += '}'
-
-        block_data = json.loads(block)  # преобразуем блок в словарь
-
+    for block_data in data:
         print('Block index:', block_data['index'])
         print('Timestamp:', block_data['timestamp'])
         print('Transactions:')

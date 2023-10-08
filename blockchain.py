@@ -102,6 +102,7 @@ fakeUsers = ["Anna", "Ilya", "Kirill", "Ulyana", "Matvey",
 def main(num):
     testChain = Blockchain()
     path = 'data.txt'
+    blocks = []
     try:
         os.remove(path)
     except OSError:
@@ -123,15 +124,17 @@ def main(num):
         print('Hash:', block.hash)
         print('Nonce:', block.nonce)
         print()
-        with open('data.txt', 'a') as outfile:
-            json.dump(block.to_dict(), outfile, indent=4)
+        blocks.append(block.to_dict())
     print("Is blockchain valid?" + str(testChain.checkValid()))
+    with open('data.txt', 'w') as outfile:
+        json.dump(blocks, outfile, indent=4)
 
 
-while True:
+def start():
     try:
         num = int(input('Enter the desired number of blocks in the chain:'))
         main(num)
-        break
     except ValueError:
         print("Error! Enter an integer.")
+
+start()
