@@ -17,8 +17,8 @@ def checkBlock(path):
         print()
 
 
-while True:
-    path = input('Enter path to chain: ')
+def main():
+    path = input('Enter path to thread you want to read: ')
     if os.path.isfile(path):
         try:
             checkBlock(path)
@@ -26,4 +26,7 @@ while True:
             print('Error! Invalid data in file.')
     else:
         print('Error! File not found at the specified path.')
-    break
+
+
+if __name__ == '__main__':
+    main()

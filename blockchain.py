@@ -22,7 +22,7 @@ class Transaction:
 
 # Класс создаюший блоки
 class Block:
-    def __init__(self, index, timestamp, transactions, previousHash=""):
+    def __init__(self, index, timestamp, transactions, previousHash="", nonce=0):
         self.index = index
         self.timestamp = timestamp
         self.transactions = transactions
@@ -76,7 +76,7 @@ class Blockchain:
     # Генерируем хэш на основе списка транзакций
     def minePendingTransactions(self):
         block = Block(len(self.chain), datetime.datetime.now().strftime("%d/%m/%Y"), self.pendingTransactions,
-                      self.latestBlock().hash)
+                      self.latestBlock().hash, nonce=0)
         block.mineBlock(self.difficulty)
         self.chain.append(block)
         self.pendingTransactions = []
@@ -99,10 +99,17 @@ fakeUsers = ["Anna", "Ilya", "Kirill", "Ulyana", "Matvey",
              "Camilla", "Maksim", "Andrey", "Gregory", "Marina"]
 
 
-def main(num):
-    testChain = Blockchain()
-    path = 'data.txt'
+def saveBlockchain(blockchain, path):
     blocks = []
+    # Вывод цепочки в консоль
+    for block in blockchain.chain:
+        blocks.append(block.to_dict())
+    with open(path, 'w') as outfile:
+        json.dump(blocks, outfile, indent=4)
+
+
+def start(num, path):
+    testChain = Blockchain()
     try:
         os.remove(path)
     except OSError:
@@ -114,27 +121,21 @@ def main(num):
             testChain.addTransaction(Transaction(fakeUsers[random.randint(1, 19)], fakeUsers[random.randint(1, 19)],
                                                  random.randint(1, 100)))
         testChain.minePendingTransactions()
-    # Вывод цепочки в консоль
-    for block in testChain.chain:
-        print(block.timestamp)
-        print('Transaction:')
-        for tx in block.transactions:
-            print('  ', tx.sender, '->', tx.receiver, '(', tx.amount, ')')
-        print('Previous_hash:', block.previousHash)
-        print('Hash:', block.hash)
-        print('Nonce:', block.nonce)
-        print()
-        blocks.append(block.to_dict())
     print("Is blockchain valid?" + str(testChain.checkValid()))
-    with open('data.txt', 'w') as outfile:
-        json.dump(blocks, outfile, indent=4)
+    saveBlockchain(testChain, path)
+    print(f"Blockchain is saved in {path}")
 
 
-def start():
+def main():
     try:
         num = int(input('Enter the desired number of blocks in the chain:'))
-        main(num)
+        path = input('Enter the file name under which the blockchain will be saved:')
+        path = f'{path}.txt'
+        start(num, path)
     except ValueError:
         print("Error! Enter an integer.")
 
-start()
+
+if __name__ == '__main__':
+    main()
+
