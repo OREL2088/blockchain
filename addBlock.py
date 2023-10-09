@@ -26,9 +26,16 @@ def addNewTran(curblockchain, path):
     while True:
         response = input('Do you want to add a block to the chain? (yes/no) ')
         if response.lower() == 'yes':
-            sender, receiver, amount = input('Enter sender, receiver, and amount (e.g. sender receiver 100): ').split()
-            amount = int(amount)
-            curblockchain.addTransaction(Transaction(sender, receiver, amount))
+            transactions = []
+            while True:
+                sender, receiver, amount = input('Enter sender, receiver, and amount (e.g. sender receiver 100): ').split()
+                amount = int(amount)
+                transactions.append(Transaction(sender, receiver, amount))
+                response = input('Do you want to add another transaction to this block? (yes/no) ')
+                if response.lower() == 'no':
+                    break
+            for t in range(len(transactions)):
+                curblockchain.addTransaction(transactions[t])
             curblockchain.minePendingTransactions()
             print('Block added to chain.')
             blockchain.saveBlockchain(curblockchain, path)
@@ -51,4 +58,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
